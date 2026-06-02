@@ -1,0 +1,13 @@
+server:
+  sandbox:
+    host: sandbox-invest-public-api.tbank.ru
+    port: 443
+  prod:
+    host: invest-public-api.tbank.ru
+    port: 443
+
+api:
+  # Режим работы: sandbox или prod
+  mode: sandbox
+  # Токен (читается из переменных окружения, не храните в YAML!)
+  token_env: TINKOFF_SANDBOX_TOKEN

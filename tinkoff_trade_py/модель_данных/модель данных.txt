@@ -1,0 +1,11 @@
+
+
+table_balance
+currency_id
+currency
+quantity
+
+
+table_orders
+order_id
+
