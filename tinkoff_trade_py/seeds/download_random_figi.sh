@@ -1,5 +1,5 @@
 figi_list=figi.txt
-token=t.M0Ls6YK32ic88esHCMS-rb0SshFqZ5m6zQqDRhHIIuUZWLutsOBblUnMQdv3ZoeWMxA6GCxlQtnn_XPic72bCg
+token=your_token
 minimum_year=2017
 current_year=$(date +%Y)
 url=https://invest-public-api.tinkoff.ru/history-data
