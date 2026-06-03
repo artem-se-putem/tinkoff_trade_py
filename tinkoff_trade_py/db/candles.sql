@@ -1,6 +1,5 @@
 -- Таблица для хранения свечных данных
 -- drop table if exists candles;
-
 CREATE TABLE candles (
     -- Уникальный идентификатор записи
     id BIGSERIAL PRIMARY KEY,
@@ -21,14 +20,14 @@ CREATE TABLE candles (
     volume BIGINT NOT NULL,
     
     -- Интервал свечи (опционально, для удобства)
-    interval VARCHAR(10) DEFAULT '1min',  -- 1min, 5min, 15min, hour, day
+    timeframe VARCHAR(10) DEFAULT '1min',  -- 1min, 5min, 15min, hour, day
     
     -- Служебная информация
     is_complete BOOLEAN DEFAULT TRUE,      -- Завершена ли свеча
     created_at TIMESTAMPTZ DEFAULT NOW(),  -- Когда запись добавлена в БД
     
     -- Ограничения
-    UNIQUE(instrument_uid, candle_time, interval)
+    UNIQUE(instrument_uid, candle_time, timeframe)
 );
 
 -- Индексы для быстрого поиска
@@ -47,8 +46,5 @@ COMMENT ON COLUMN candles.close_price IS 'Цена закрытия';
 COMMENT ON COLUMN candles.high_price IS 'Максимальная цена за интервал';
 COMMENT ON COLUMN candles.low_price IS 'Минимальная цена за интервал';
 COMMENT ON COLUMN candles.volume IS 'Объём торгов в лотах';
-COMMENT ON COLUMN candles.interval IS 'Интервал свечи (1min, 5min, hour, day)';
+COMMENT ON COLUMN candles.timeframe IS 'Интервал свечи (1min, 5min, hour, day)';
 COMMENT ON COLUMN candles.is_complete IS 'Флаг завершённой свечи (True - можно использовать)';
-
-select * from candles;
-
