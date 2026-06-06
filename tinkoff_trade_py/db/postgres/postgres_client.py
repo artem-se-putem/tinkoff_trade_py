@@ -19,7 +19,7 @@ class PostgresClient:
             df = client.read_table("candles")
     """
     
-    def __init__(self, db_config: object):
+    def __init__(self, db_config: Dict[str, Any]):
         """
         Инициализация клиента.
         
@@ -37,7 +37,7 @@ class PostgresClient:
         Подключение создаётся только при первом обращении.
         """
         if self._connection is None or self._connection.closed:
-            self._connection = psycopg2.connect(**self._config.__dict__)
+            self._connection = psycopg2.connect(**self._config)
         return self._connection
     
     def close(self) -> None:
@@ -57,6 +57,7 @@ class PostgresClient:
             with self.connection.cursor() as cur:
                 cur.execute("SELECT 1")
                 cur.fetchone()
+                logger.info("Успешное подключение к PostgreSQL")
             return True
         except Exception as e:
             logger.info(f"Ошибка подключения к PostgreSQL: {e}")
@@ -92,7 +93,7 @@ class PostgresClient:
         """
         return self.load_dataframe(table_name, limit)
     
-    def execute_query(self, query: str, params: Optional[tuple] = None) -> Optional[list]:
+    def execute_query(self, query: str, params: Optional[tuple | list] = None) -> Optional[list]:
         """
         Выполняет произвольный SQL запрос.
         
@@ -109,6 +110,109 @@ class PostgresClient:
                 return cur.fetchall()
             self.connection.commit()
             return None
+        
+    # ========== ВСТАВКА СВЕЧИ ==========
+    
+    def insert_candle(self, candle, instrument_uid: str = "T_TQBR", timeframe: str = "1hour"):
+        """
+        Вставка одной свечи в таблицу candles
+        
+        Args:
+            candle: объект HistoricCandle из Tinkoff API
+            instrument_uid: UID инструмента
+            timeframe: интервал свечи (1min, 5min, hour, day)
+        """
+        try:
+            with self.connection.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO candles (
+                        instrument_uid, candle_time, 
+                        open_price, close_price, high_price, low_price,
+                        volume, timeframe, is_complete
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    ON CONFLICT (instrument_uid, candle_time, timeframe) 
+                    DO UPDATE SET
+                        open_price = EXCLUDED.open_price,
+                        close_price = EXCLUDED.close_price,
+                        high_price = EXCLUDED.high_price,
+                        low_price = EXCLUDED.low_price,
+                        volume = EXCLUDED.volume,
+                        is_complete = EXCLUDED.is_complete
+                """, (
+                    instrument_uid,
+                    candle.time,
+                    float(candle.open.units + candle.open.nano / 1e9),
+                    float(candle.close.units + candle.close.nano / 1e9),
+                    float(candle.high.units + candle.high.nano / 1e9),
+                    float(candle.low.units + candle.low.nano / 1e9),
+                    candle.volume,
+                    timeframe,
+                    candle.is_complete
+                ))
+                self.connection.commit()
+                logger.debug(f"📊 Свеча вставлена: {instrument_uid} {candle.time}")
+                
+        except Exception as e:
+            self.connection.rollback()
+            logger.error(f"❌ Ошибка вставки свечи: {e}")
+            raise
+    
+    def insert_candles_batch(self, candles: list, instrument_uid: str = "T_TQBR", timeframe: str = "1hour"):
+        """
+        Массовая вставка через обычный execute (медленнее, но проще)
+        """
+        if not candles:
+            return
+        
+        inserted = 0
+        failed = 0
+        
+        for candle in candles:
+            try:
+                open_price = candle.open.units + candle.open.nano / 1e9
+                close_price = candle.close.units + candle.close.nano / 1e9
+                high_price = candle.high.units + candle.high.nano / 1e9
+                low_price = candle.low.units + candle.low.nano / 1e9
+                
+                query = """
+                    INSERT INTO candles (
+                        instrument_uid, candle_time, 
+                        open_price, close_price, high_price, low_price,
+                        volume, timeframe, is_complete
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (instrument_uid, candle_time, timeframe) 
+                    DO UPDATE SET
+                        open_price = EXCLUDED.open_price,
+                        close_price = EXCLUDED.close_price,
+                        high_price = EXCLUDED.high_price,
+                        low_price = EXCLUDED.low_price,
+                        volume = EXCLUDED.volume,
+                        is_complete = EXCLUDED.is_complete
+                """
+                
+                params = (
+                    instrument_uid,
+                    candle.time,
+                    open_price,
+                    close_price,
+                    high_price,
+                    low_price,
+                    candle.volume,
+                    timeframe,
+                    candle.is_complete
+                )
+                
+                self.execute_query(query, params)
+                inserted += 1
+                
+            except Exception as e:
+                failed += 1
+                logger.error(f"Ошибка вставки свечи {candle.time}: {e}")
+        
+        self.connection.commit()
+        logger.info(f"Вставлено: {inserted}, ошибок: {failed}")     
     
     def __enter__(self):
         """Поддержка контекстного менеджера."""

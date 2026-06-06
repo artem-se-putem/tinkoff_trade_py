@@ -57,7 +57,6 @@ class FullConfig:
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    postgres_config: Optional[Dict[str, Any]] = field(default_factory=dict)
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "postgres"
@@ -92,9 +91,6 @@ class FullConfig:
             logger.info(yaml_data)
         
         # 3. Создаём датакласс, объединяя env + yaml
-        cls.postgres_config = yaml_data.get('postgres')
-        if cls.postgres_config is None:
-            cls.postgres_config = {}
         return cls(
             # Из EnvConfig (обязательные)
             token_prod=env_config.token_prod,
@@ -106,22 +102,33 @@ class FullConfig:
             redis_host=yaml_data.get('redis_host', 'localhost'),
             redis_port=yaml_data.get('redis_port', 6379),
             # redis_db=yaml_data.get('redis_db', 0),
-            postgres_host=cls.postgres_config.get('host', 'localhost'),
-            postgres_port=cls.postgres_config.get('port', 5432),
-            postgres_user=cls.postgres_config.get('user', 'postgres'),
-            postgres_password=cls.postgres_config.get('password', 'postgres'),
-            postgres_database=cls.postgres_config.get('database', 'tinkoff_trade'),
-            # strategy_name=yaml_data.get('strategy_name', 'rsi_strategy'),
-            # rsi_period=yaml_data.get('rsi_period', 14),
-            # rsi_oversold=yaml_data.get('rsi_oversold', 30),
-            # rsi_overbought=yaml_data.get('rsi_overbought', 70),
-            # order_quantity=yaml_data.get('order_quantity', 1),
-            # stop_loss_percent=yaml_data.get('stop_loss_percent', 2.0),
-            # take_profit_percent=yaml_data.get('take_profit_percent', 4.0),
-            # instruments=yaml_data.get('instruments', []),
+            postgres_host=yaml_data.get('postgres_host', 'localhost'),
+            postgres_port=yaml_data.get('postgres_port', 5432),
+            postgres_user=yaml_data.get('postgres_user', 'postgres'),
+            postgres_password=yaml_data.get('postgres_password', 'postgres'),
+            postgres_database=yaml_data.get('postgres_database', 'tinkoff_trade'),
+            strategy_name=yaml_data.get('strategy_name', 'rsi_strategy'),
+            rsi_period=yaml_data.get('rsi_period', 14),
+            rsi_oversold=yaml_data.get('rsi_oversold', 30),
+            rsi_overbought=yaml_data.get('rsi_overbought', 70),
+            order_quantity=yaml_data.get('order_quantity', 1),
+            stop_loss_percent=yaml_data.get('stop_loss_percent', 2.0),
+            take_profit_percent=yaml_data.get('take_profit_percent', 4.0),
+            instruments=yaml_data.get('instruments', []),
             log_level=yaml_data.get('log_level', 'INFO'),
             timeframe=yaml_data.get('timeframe', 60),
         )
+    
+    @property
+    def postgres_config(self) -> dict:
+        """Словарь для подключения к PostgreSQL"""
+        return {
+            'host': self.postgres_host,
+            'port': self.postgres_port,
+            'user': self.postgres_user,
+            'password': self.postgres_password,
+            'database': self.postgres_database,
+        }    
 
 
 # ========== ИСПОЛЬЗОВАНИЕ ==========

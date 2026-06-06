@@ -1,7 +1,6 @@
 # Базы данных
 redis_host: localhost
 redis_port: 6379
-# redis_db: 0
 
 postgres:
   host: localhost
@@ -11,15 +10,19 @@ postgres:
   database: tinkoff_trade
 
 # Торговые настройки
-# order_quantity: 10
-# stop_loss_percent: 2.0
-# take_profit_percent: 4.0
+order_quantity: 10
+stop_loss_percent: 2.0
+take_profit_percent: 4.0
 
-# Инструменты для торговли
-# instruments:
-#   - BBG004730N88  # SBER
-#   - BBG000B9XRY4  # GAZP
-#   - BBG000BB0Z57  # LKOH
+# Параметры RSI стратегии
+rsi_period: 14
+rsi_oversold: 30
+rsi_overbought: 70
+
+# Инструменты для торговли (ДОБАВЬТЕ ЭТО!)
+instruments:
+  - BBG004730N88  # Сбер
+  - BBG000B9XRY4  # Газпром
 
 # Логирование и интервалы
 log_level: INFO

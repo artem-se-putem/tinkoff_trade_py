@@ -16,17 +16,21 @@ def main():
     logger.info("starting main.py")
     load_dotenv()
     full_config = FullConfig.load()
-    postgres_client = PostgresClient(full_config)
-    postgres_client.check_connection()
     
-    # with Client(full_config.token_sandbox) as client:
-    #     for candle in client.get_all_candles(
-    #         instrument_id="T_TQBR",
-    #         from_=now() - timedelta(days=365),
-    #         interval=CandleInterval.CANDLE_INTERVAL_HOUR,
-    #         candle_source_type=CandleSource.CANDLE_SOURCE_UNSPECIFIED,
-    #     ):
-    #         logger.info(candle)
+    with Client(full_config.token_sandbox) as client:
+        lst_candles = []
+        with  PostgresClient(full_config.postgres_config) as postgres_client:
+            for candle in client.get_all_candles(
+                instrument_id="T_TQBR",
+                from_=now() - timedelta(days=365),
+                interval=CandleInterval.CANDLE_INTERVAL_HOUR,
+                candle_source_type=CandleSource.CANDLE_SOURCE_UNSPECIFIED,
+            ):
+                logger.info(candle)
+                lst_candles.append(candle)
+            
+            postgres_client.insert_candles_batch(lst_candles)
+
 
     return 0
 
