@@ -1,3 +1,3 @@
-from .config_loader import load_full_config
+from .default_logger.setup_logger import logger, setup_logger
 
-__all__ = ['load_full_config']
+__all__ = ['logger', 'setup_logger']

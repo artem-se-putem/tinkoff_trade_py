@@ -1,3 +1,31 @@
+# Базы данных
+redis_host: localhost
+redis_port: 6379
+# redis_db: 0
+
+postgres:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  database: tinkoff_trade
+
+# Торговые настройки
+# order_quantity: 10
+# stop_loss_percent: 2.0
+# take_profit_percent: 4.0
+
+# Инструменты для торговли
+# instruments:
+#   - BBG004730N88  # SBER
+#   - BBG000B9XRY4  # GAZP
+#   - BBG000BB0Z57  # LKOH
+
+# Логирование и интервалы
+log_level: INFO
+takeframe: '1 sec'
+
+
 server:
   sandbox:
     host: sandbox-invest-public-api.tbank.ru
@@ -11,3 +39,4 @@ api:
   mode: sandbox
   # Токен (читается из переменных окружения, не храните в YAML!)
   token_env: TINKOFF_SANDBOX_TOKEN
+

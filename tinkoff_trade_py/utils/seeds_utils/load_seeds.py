@@ -2,6 +2,7 @@ import polars as pl
 from pathlib import Path
 import psycopg2
 from psycopg2.extras import execute_values
+from utils import logger
 
 # ============================================
 # КОНФИГУРАЦИЯ
@@ -31,7 +32,7 @@ def load_all_csv_to_df(folder: Path) -> pl.DataFrame:
     if not csv_files:
         raise FileNotFoundError(f"CSV файлы не найдены в {folder}")
     
-    print(f"📁 Найдено CSV файлов: {len(csv_files)}")
+    logger.info(f"📁 Найдено CSV файлов: {len(csv_files)}")
     
     dfs = []
     failed_files = []
@@ -66,7 +67,7 @@ def load_all_csv_to_df(folder: Path) -> pl.DataFrame:
         
         if df is None:
             failed_files.append(csv_file.name)
-            print(f"    ⚠️ Пропущен: {csv_file.name}")
+            logger.info(f"    ⚠️ Пропущен: {csv_file.name}")
             continue
         
         # Добавляем имя файла
@@ -74,10 +75,10 @@ def load_all_csv_to_df(folder: Path) -> pl.DataFrame:
         dfs.append(df)
         
         # Прогресс
-        print(f"  ✓ {csv_file.name} -> {df.height} строк")
+        logger.info(f"  ✓ {csv_file.name} -> {df.height} строк")
     
     if failed_files:
-        print(f"\n⚠️ Пропущено файлов: {len(failed_files)}")
+        logger.info(f"\n⚠️ Пропущено файлов: {len(failed_files)}")
     
     if not dfs:
         raise ValueError("Нет данных для объединения")
@@ -85,10 +86,10 @@ def load_all_csv_to_df(folder: Path) -> pl.DataFrame:
     # Объединяем все DataFrame
     combined_df = pl.concat(dfs)
     
-    print(f"\n✅ Всего строк: {combined_df.height:,}")
-    print(f"📊 Колонки и типы:")
+    logger.info(f"\n✅ Всего строк: {combined_df.height:,}")
+    logger.info(f"📊 Колонки и типы:")
     for col, dtype in combined_df.schema.items():
-        print(f"    {col}: {dtype}")
+        logger.info(f"    {col}: {dtype}")
     
     return combined_df
 
@@ -118,7 +119,7 @@ def save_to_postgres(df: pl.DataFrame, table_name: str, conn):
         execute_values(cur, sql, records, page_size=1000)
     conn.commit()
     
-    print(f"✅ Сохранено {len(records)} записей в {table_name}")
+    logger.info(f"✅ Сохранено {len(records)} записей в {table_name}")
 
 
 def main():

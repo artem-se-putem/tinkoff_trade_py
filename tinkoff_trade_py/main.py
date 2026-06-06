@@ -7,21 +7,26 @@ from t_tech.invest import CandleInterval, Client
 from t_tech.invest.schemas import CandleSource
 from t_tech.invest.utils import now
 
-from utils.config_loader import load_full_config
+from configs import FullConfig, EnvConfig
+from db import PostgresClient, RedisClient
+from utils import logger
 
 
 def main():
+    logger.info("starting main.py")
     load_dotenv()
-    full_config = load_full_config()
+    full_config = FullConfig.load()
+    postgres_client = PostgresClient(full_config)
+    postgres_client.check_connection()
     
-    with Client(full_config['token_sandbox']) as client:
-        for candle in client.get_all_candles(
-            instrument_id="T_TQBR",
-            from_=now() - timedelta(days=365),
-            interval=CandleInterval.CANDLE_INTERVAL_HOUR,
-            candle_source_type=CandleSource.CANDLE_SOURCE_UNSPECIFIED,
-        ):
-            print(candle)
+    # with Client(full_config.token_sandbox) as client:
+    #     for candle in client.get_all_candles(
+    #         instrument_id="T_TQBR",
+    #         from_=now() - timedelta(days=365),
+    #         interval=CandleInterval.CANDLE_INTERVAL_HOUR,
+    #         candle_source_type=CandleSource.CANDLE_SOURCE_UNSPECIFIED,
+    #     ):
+    #         logger.info(candle)
 
     return 0
 

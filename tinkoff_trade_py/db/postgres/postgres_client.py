@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional
 import psycopg2
 import polars as pl
 from psycopg2.extensions import connection as PsycopgConnection
+from utils import logger
 
 
 class PostgresClient:
@@ -18,7 +19,7 @@ class PostgresClient:
             df = client.read_table("candles")
     """
     
-    def __init__(self, db_config: Dict[str, Any]):
+    def __init__(self, db_config: object):
         """
         Инициализация клиента.
         
@@ -28,28 +29,7 @@ class PostgresClient:
         """
         self._config = db_config
         self._connection: Optional[PsycopgConnection] = None
-    
-    @classmethod
-    def from_app_config(cls, app_config: Dict[str, Any]) -> 'PostgresClient':
-        """
-        Создает клиент из глобального конфига приложения.
         
-        Args:
-            app_config: Глобальный конфиг приложения, где есть секция 'database'
-        """
-        db_config = app_config.get('database', {})
-        # Заполняем значениями по умолчанию, если чего-то нет
-        default_config = {
-            "host": "localhost",
-            "port": 5432,
-            "database": "tinkoff_trade",
-            "user": "postgres",
-            "password": "postgres"
-        }
-        # Объединяем: значения из app_config перезаписывают default
-        final_config = {**default_config, **db_config}
-        return cls(final_config)
-    
     @property # дает синглтон, кэширует после первого обращения (выполняется только один раз)
     def connection(self) -> PsycopgConnection:
         """
@@ -57,7 +37,7 @@ class PostgresClient:
         Подключение создаётся только при первом обращении.
         """
         if self._connection is None or self._connection.closed:
-            self._connection = psycopg2.connect(**self._config)
+            self._connection = psycopg2.connect(**self._config.__dict__)
         return self._connection
     
     def close(self) -> None:
@@ -79,7 +59,7 @@ class PostgresClient:
                 cur.fetchone()
             return True
         except Exception as e:
-            print(f"Ошибка подключения к PostgreSQL: {e}")
+            logger.info(f"Ошибка подключения к PostgreSQL: {e}")
             return False
     
     def load_dataframe(self, table_name: str, limit: Optional[int] = None) -> pl.DataFrame:
@@ -112,7 +92,7 @@ class PostgresClient:
         """
         return self.load_dataframe(table_name, limit)
     
-    def execute_query(self, query: str, params: tuple = None) -> Optional[list]:
+    def execute_query(self, query: str, params: Optional[tuple] = None) -> Optional[list]:
         """
         Выполняет произвольный SQL запрос.
         
