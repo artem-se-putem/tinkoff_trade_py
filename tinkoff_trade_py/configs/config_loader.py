@@ -57,6 +57,7 @@ class FullConfig:
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
+    postgres_config: Optional[Dict[str, Any]] = field(default_factory=dict)
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "postgres"
@@ -91,6 +92,9 @@ class FullConfig:
             logger.info(yaml_data)
         
         # 3. Создаём датакласс, объединяя env + yaml
+        cls.postgres_config = yaml_data.get('postgres')
+        if cls.postgres_config is None:
+            cls.postgres_config = {}
         return cls(
             # Из EnvConfig (обязательные)
             token_prod=env_config.token_prod,
@@ -102,11 +106,11 @@ class FullConfig:
             redis_host=yaml_data.get('redis_host', 'localhost'),
             redis_port=yaml_data.get('redis_port', 6379),
             # redis_db=yaml_data.get('redis_db', 0),
-            postgres_host=yaml_data.get('postgres_host', 'localhost'),
-            postgres_port=yaml_data.get('postgres_port', 5432),
-            postgres_user=yaml_data.get('postgres_user', 'postgres'),
-            postgres_password=yaml_data.get('postgres_password', 'postgres'),
-            postgres_database=yaml_data.get('postgres_database', 'tinkoff_trade'),
+            postgres_host=cls.postgres_config.get('host', 'localhost'),
+            postgres_port=cls.postgres_config.get('port', 5432),
+            postgres_user=cls.postgres_config.get('user', 'postgres'),
+            postgres_password=cls.postgres_config.get('password', 'postgres'),
+            postgres_database=cls.postgres_config.get('database', 'tinkoff_trade'),
             # strategy_name=yaml_data.get('strategy_name', 'rsi_strategy'),
             # rsi_period=yaml_data.get('rsi_period', 14),
             # rsi_oversold=yaml_data.get('rsi_oversold', 30),

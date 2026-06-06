@@ -1,6 +1,6 @@
 import redis
-from typing import Dict, Any, Optional
 from utils import logger
+from typing import Optional
 
 class RedisClient:
     def __init__(self, host='localhost', port=6379, db=0):
