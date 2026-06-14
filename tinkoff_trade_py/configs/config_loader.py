@@ -75,9 +75,15 @@ class FullConfig:
     # Инструменты для торговли
     instruments: List[str] = field(default_factory=list)
     
+    # Настройки графика и цикла
+    instrument_uid: str = "T_TQBR"
+    timeframe: str = "1hour"
+    retention_days: int = 60
+    chart_limit: int = 200
+    loop_interval_sec: int = 3600
+
     # Общие настройки
     log_level: str = "INFO"
-    timeframe: str = '1 sec'
     
     @classmethod
     def load(cls) -> 'FullConfig':
@@ -115,8 +121,12 @@ class FullConfig:
             stop_loss_percent=yaml_data.get('stop_loss_percent', 2.0),
             take_profit_percent=yaml_data.get('take_profit_percent', 4.0),
             instruments=yaml_data.get('instruments', []),
+            instrument_uid=yaml_data.get('instrument_uid', 'T_TQBR'),
+            timeframe=yaml_data.get('timeframe', '1hour'),
+            retention_days=yaml_data.get('retention_days', 60),
+            chart_limit=yaml_data.get('chart_limit', 200),
+            loop_interval_sec=yaml_data.get('loop_interval_sec', 3600),
             log_level=yaml_data.get('log_level', 'INFO'),
-            timeframe=yaml_data.get('timeframe', 60),
         )
     
     @property

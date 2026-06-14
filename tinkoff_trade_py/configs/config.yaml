@@ -24,9 +24,15 @@ instruments:
   - BBG004730N88  # Сбер
   - BBG000B9XRY4  # Газпром
 
+# Настройки графика и цикла обновления
+instrument_uid: T_TQBR
+timeframe: 1hour
+retention_days: 60
+chart_limit: 200
+loop_interval_sec: 3600
+
 # Логирование и интервалы
 log_level: INFO
-takeframe: '1 sec'
 
 
 server:
